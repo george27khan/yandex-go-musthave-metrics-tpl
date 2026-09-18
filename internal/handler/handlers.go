@@ -1,53 +1,63 @@
 package handler
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 	"strconv"
+	"yandex-go-musthave-metrics-tpl/internal/model"
+	"yandex-go-musthave-metrics-tpl/internal/service/server"
 )
 
-type MetricHandler struct {
+var _ MetricService = (*server.MeticService)(nil)
+
+type MetricService interface {
+	Add(ctx context.Context, m model.Metrics) error
 }
 
-func NewMetricHandler() *MetricHandler {
-	return &MetricHandler{}
+type MetricHandler struct {
+	MetricService MetricService
+}
+
+func NewMetricHandler(ms MetricService) *MetricHandler {
+	return &MetricHandler{
+		MetricService: ms,
+	}
 }
 
 func (h *MetricHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var (
 		valFloat float64
-		valInt   int
 		err      error
 	)
 
 	typ := r.PathValue("type")
 	name := r.PathValue("name")
 	value := r.PathValue("value")
-	fmt.Println("test", typ, name, value)
-	if typ != "gauge" && typ != "counter" {
+	if typ != model.Gauge && typ != model.Counter {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if typ == "gauge" {
-		valFloat, err = strconv.ParseFloat(value, 64)
-		if err != nil {
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+	valFloat, err = strconv.ParseFloat(value, 64)
+	if err != nil {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	if typ == "counter" {
-		valInt, err = strconv.Atoi(value)
-		if err != nil {
-			w.Header().Set("Content-Type", "text/plain")
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+	err = h.MetricService.Add(r.Context(), model.Metrics{
+		ID:    name,
+		MType: typ,
+		Delta: nil,
+		Value: &valFloat,
+		Hash:  "",
+	})
+	if err != nil {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	fmt.Println("test", valFloat, valInt)
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 }

@@ -1,9 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"yandex-go-musthave-metrics-tpl/internal/agent"
+)
 
 func main() {
-	if err := http.ListenAndServe("localhost:8080", nil); err != nil {
-		panic(err)
-	}
+	agent.Start()
 }
