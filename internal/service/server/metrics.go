@@ -2,8 +2,7 @@ package server
 
 import (
 	"context"
-	"fmt"
-	models "yandex-go-musthave-metrics-tpl/internal/model"
+	"yandex-go-musthave-metrics-tpl/internal/model"
 	storage "yandex-go-musthave-metrics-tpl/internal/repository/mem_storage"
 )
 
@@ -11,30 +10,46 @@ import (
 var _ MetricRepository = (*storage.MemStorage)(nil)
 
 type MetricRepository interface {
-	Add(ctx context.Context, m models.Metrics) error
-	Get(ctx context.Context, name string) (models.Metrics, error)
+	Add(ctx context.Context, m model.Metrics) error
+	GetValue(ctx context.Context, name string) (*float64, error)
+	GetAll(ctx context.Context) ([]model.Metrics, error)
 }
 
-type MeticService struct {
+type MetricService struct {
 	repository MetricRepository
 }
 
-func NewMetricService(mr MetricRepository) *MeticService {
-	return &MeticService{
+func NewMetricService(mr MetricRepository) *MetricService {
+	return &MetricService{
 		repository: mr,
 	}
 }
 
-func (s *MeticService) Add(ctx context.Context, m models.Metrics) error {
-	if m.MType == models.Counter {
-		oldMetric, err := s.repository.Get(ctx, m.ID)
+func (s *MetricService) Add(ctx context.Context, m model.Metrics) error {
+	if m.MType == model.Counter {
+		oldMetricVal, err := s.repository.GetValue(ctx, m.ID)
 		if err == nil {
-			*m.Value += *oldMetric.Value
-			fmt.Println(*m.Value)
+			*m.Value += *oldMetricVal
 		}
 	}
 	if err := s.repository.Add(ctx, m); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *MetricService) GetValue(ctx context.Context, name string) (*float64, error) {
+	metricValue, err := s.repository.GetValue(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return metricValue, nil
+}
+
+func (s *MetricService) GetAll(ctx context.Context) ([]model.Metrics, error) {
+	metrics, err := s.repository.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return metrics, nil
 }
