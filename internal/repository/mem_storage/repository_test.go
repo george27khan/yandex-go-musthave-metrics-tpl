@@ -42,7 +42,7 @@ func TestAddAndGet(t *testing.T) {
 				assert.Equal(t, tt.err, err)
 				return
 			}
-			metric, err := storage.Get(t.Context(), tt.metric.ID)
+			metric, err := storage.GetValue(t.Context(), tt.metric.ID)
 			assert.Equal(t, tt.expected, metric)
 		})
 	}
