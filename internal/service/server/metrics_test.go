@@ -25,7 +25,7 @@ func TestAdd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MeticService{
+			s := &MetricService{
 				repository: tt.fields.repository,
 			}
 			if err := s.Add(tt.args.ctx, tt.args.m); (err != nil) != tt.wantErr {
@@ -42,7 +42,7 @@ func TestNewMetricService(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *MeticService
+		want *MetricService
 	}{
 		// TODO: Add test cases.
 	}
