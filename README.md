@@ -60,4 +60,20 @@ metricstest-darwin-arm64 -test.v -test.run='^TestIteration1$' -binary-path=cmd/s
 
 metricstest-darwin-arm64 -test.v -test.run='^TestIteration2$' -agent-binary-path=cmd/agent/agent
 
-metricstest-darwin-arm64 -test.v -test.run='^TestIteration3$' -binary-path=cmd/server/server
+metricstest-darwin-arm64 -test.v -test.run='^TestIteration5$' -binary-path=cmd/server/server
+
+metricstest-darwin-arm64 \
+-test.v \
+-test.run='^TestIteration2$' \
+-binary-path=cmd/server/server \
+-source-path=. \
+-agent-binary-path=cmd/agent/agent \
+-server-port=8080
+
+metricstest-darwin-arm64 \
+-test.v \
+-test.run='^TestIteration5$' \
+-binary-path=cmd/server/server \
+-source-path=. \
+-agent-binary-path=cmd/agent/agent \
+-server-port=8080

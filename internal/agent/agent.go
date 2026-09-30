@@ -3,8 +3,11 @@ package agent
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"time"
 	"yandex-go-musthave-metrics-tpl/internal/model"
 	"yandex-go-musthave-metrics-tpl/internal/service/agent"
@@ -19,8 +22,27 @@ func Start() {
 	serverHost := flag.String("a", "localhost:8080", "Set the path to the metrics endpoint")
 	reportInterval := flag.Int("r", 10, "Set report interval in seconds")
 	poolInterval := flag.Int("p", 2, "Set pool interval in seconds")
-
 	flag.Parse()
+
+	if val, ok := os.LookupEnv("ADDRESS"); ok {
+		*serverHost = val
+	}
+	if val, ok := os.LookupEnv("REPORT_INTERVAL"); ok {
+		valInt, err := strconv.Atoi(val)
+		if err != nil {
+			log.Fatalf("Could not parse REPORT_INTERVAL environment variable, %w", err)
+			return
+		}
+		*reportInterval = valInt
+	}
+	if val, ok := os.LookupEnv("POOL_INTERVAL"); ok {
+		valInt, err := strconv.Atoi(val)
+		if err != nil {
+			log.Fatalf("Could not parse POOL_INTERVAL environment variable, %w", err)
+			return
+		}
+		*poolInterval = valInt
+	}
 
 	fmt.Println("Agent listening on", *serverHost)
 	client := http.Client{}
