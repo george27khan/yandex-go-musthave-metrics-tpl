@@ -30,7 +30,7 @@ func Start() {
 	if val, ok := os.LookupEnv("REPORT_INTERVAL"); ok {
 		valInt, err := strconv.Atoi(val)
 		if err != nil {
-			log.Fatalf("Could not parse REPORT_INTERVAL environment variable, %w", err)
+			log.Fatalf("Could not parse REPORT_INTERVAL environment variable, %v", err)
 			return
 		}
 		*reportInterval = valInt
@@ -38,7 +38,7 @@ func Start() {
 	if val, ok := os.LookupEnv("POOL_INTERVAL"); ok {
 		valInt, err := strconv.Atoi(val)
 		if err != nil {
-			log.Fatalf("Could not parse POOL_INTERVAL environment variable, %w", err)
+			log.Fatalf("Could not parse POOL_INTERVAL environment variable, %v", err)
 			return
 		}
 		*poolInterval = valInt
