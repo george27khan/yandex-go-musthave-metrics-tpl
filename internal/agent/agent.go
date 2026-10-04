@@ -16,7 +16,7 @@ import (
 func Start() {
 	var (
 		metrics map[string]model.GaugeT
-		poolCnt int = 0
+		poolCnt = 0
 		urlReq  *url.URL
 	)
 	serverHost := flag.String("a", "localhost:8080", "Set the path to the metrics endpoint")
@@ -60,10 +60,18 @@ func Start() {
 			fmt.Println("send")
 			for name, value := range metrics {
 				urlReq = &url.URL{Scheme: "http", Host: *serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", model.Gauge, name, value)}
-				client.Post(urlReq.String(), "text/plain", nil)
+				resp, err := client.Post(urlReq.String(), "text/plain", nil)
+				if err != nil {
+					log.Fatalf("Could not send request to server, %v", err)
+				}
+				defer resp.Body.Close()
 			}
 			urlReq = &url.URL{Scheme: "http", Host: *serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", model.Counter, "PollCount", poolCnt)}
-			client.Post(urlReq.String(), "text/plain", nil)
+			resp, err := client.Post(urlReq.String(), "text/plain", nil)
+			if err != nil {
+				log.Fatalf("Could not send request to server, %v", err)
+			}
+			defer resp.Body.Close()
 			poolCnt = 0
 		default:
 			time.Sleep((time.Duration)(*poolInterval) * time.Second)

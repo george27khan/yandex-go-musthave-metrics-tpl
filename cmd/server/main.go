@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	h "yandex-go-musthave-metrics-tpl/internal/handler"
-	ms "yandex-go-musthave-metrics-tpl/internal/repository/mem_storage"
+	ms "yandex-go-musthave-metrics-tpl/internal/repository/memstorage"
 	s "yandex-go-musthave-metrics-tpl/internal/service/server"
 
 	"github.com/go-chi/chi/v5"

@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"yandex-go-musthave-metrics-tpl/internal/model"
-	storage "yandex-go-musthave-metrics-tpl/internal/repository/mem_storage"
+	storage "yandex-go-musthave-metrics-tpl/internal/repository/memstorage"
 )
 
 //go:generate mockgen -package server -source=metrics.go -destination=mock_metrics_test.go
