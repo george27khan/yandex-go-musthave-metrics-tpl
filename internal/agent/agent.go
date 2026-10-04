@@ -50,7 +50,6 @@ func Start() {
 	tSend := time.NewTicker((time.Duration)(*reportInterval) * time.Second)
 
 	for {
-		fmt.Println("start")
 		select {
 		case <-tPool.C:
 			fmt.Println("pool")
@@ -62,19 +61,20 @@ func Start() {
 				urlReq = &url.URL{Scheme: "http", Host: *serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", model.Gauge, name, value)}
 				resp, err := client.Post(urlReq.String(), "text/plain", nil)
 				if err != nil {
-					log.Fatalf("Could not send request to server, %v", err)
+					log.Printf("Could not send request to server, %v/n", err)
+				} else {
+					resp.Body.Close()
 				}
-				defer resp.Body.Close()
 			}
 			urlReq = &url.URL{Scheme: "http", Host: *serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", model.Counter, "PollCount", poolCnt)}
 			resp, err := client.Post(urlReq.String(), "text/plain", nil)
 			if err != nil {
-				log.Fatalf("Could not send request to server, %v", err)
+				log.Printf("Could not send request to server, %v/n", err)
+			} else {
+				resp.Body.Close()
 			}
-			defer resp.Body.Close()
+
 			poolCnt = 0
-		default:
-			time.Sleep((time.Duration)(*poolInterval) * time.Second)
 		}
 
 	}
