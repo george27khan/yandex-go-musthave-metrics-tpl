@@ -25,7 +25,7 @@ func NewMiddleware(logger *slog.Logger) *Middleware {
 	return &Middleware{logger: logger}
 }
 
-// Добавление логов в запросы
+// WithLogger добавление логов в запросы
 func (m *Middleware) WithLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestInfo := &RequestInfo{
@@ -45,9 +45,9 @@ func (m *Middleware) WithLogger(h http.Handler) http.Handler {
 				"Method", requestInfo.Method,
 				"Duration", requestInfo.Duration.String(),
 			),
-			slog.Group("Response"),
-			"Status", responseInfo.Status,
-			"BodySize", responseInfo.BodySize,
+			slog.Group("Response",
+				"Status", responseInfo.Status,
+				"BodySize", responseInfo.BodySize),
 		)
 	})
 }
