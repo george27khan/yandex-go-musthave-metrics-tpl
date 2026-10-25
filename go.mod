@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect

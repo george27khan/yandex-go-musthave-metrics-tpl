@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -15,9 +17,8 @@ import (
 
 func Start() {
 	var (
-		metrics map[string]model.GaugeT
-		poolCnt = 0
-		urlReq  *url.URL
+		metrics []model.Metrics
+		poolCnt int64 = 0
 	)
 	serverHost := flag.String("a", "localhost:8080", "Set the path to the metrics endpoint")
 	reportInterval := flag.Int("r", 10, "Set report interval in seconds")
@@ -52,30 +53,55 @@ func Start() {
 	for {
 		select {
 		case <-tPool.C:
-			fmt.Println("pool")
+			//fmt.Println("pool")
 			metrics = agent.GetMetrics()
 			poolCnt++
 		case <-tSend.C:
-			fmt.Println("send")
-			for name, value := range metrics {
-				urlReq = &url.URL{Scheme: "http", Host: *serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", model.Gauge, name, value)}
-				resp, err := client.Post(urlReq.String(), "text/plain", nil)
-				if err != nil {
-					log.Printf("Could not send request to server, %v/n", err)
-				} else {
-					resp.Body.Close()
-				}
+			//fmt.Println("send")
+			metrics = append(metrics, model.Metrics{
+				ID:    "PollCount",
+				MType: model.Counter,
+				Delta: &poolCnt,
+				Value: nil,
+				Hash:  "",
+			})
+			for _, value := range metrics {
+				sendJSON(client, *serverHost, value)
 			}
-			urlReq = &url.URL{Scheme: "http", Host: *serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", model.Counter, "PollCount", poolCnt)}
-			resp, err := client.Post(urlReq.String(), "text/plain", nil)
-			if err != nil {
-				log.Printf("Could not send request to server, %v/n", err)
-			} else {
-				resp.Body.Close()
-			}
-
 			poolCnt = 0
 		}
 
+	}
+}
+
+func send(c http.Client, serverHost string, m model.Metrics) {
+	urlReq := &url.URL{}
+	if m.MType == model.Counter {
+		urlReq = &url.URL{Scheme: "http", Host: serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", m.MType, m.ID, *m.Delta)}
+	} else {
+		urlReq = &url.URL{Scheme: "http", Host: serverHost, Path: fmt.Sprintf("/update/%s/%s/%v", m.MType, m.ID, *m.Value)}
+
+	}
+	resp, err := c.Post(urlReq.String(), "text/plain", nil)
+	if err != nil {
+		log.Printf("Could not send request to server, %v/n", err)
+	} else {
+		resp.Body.Close()
+	}
+}
+
+func sendJSON(c http.Client, serverHost string, m model.Metrics) {
+	buffer := &bytes.Buffer{}
+	urlReq := &url.URL{Scheme: "http", Host: serverHost, Path: fmt.Sprintf("/update/")}
+	err := json.NewEncoder(buffer).Encode(m)
+	if err != nil {
+		log.Printf("Could not send request to server, %v/n", err)
+		return
+	}
+	resp, err := c.Post(urlReq.String(), "application/json", buffer)
+	if err != nil {
+		log.Printf("Could not send request to server, %v/n", err)
+	} else {
+		resp.Body.Close()
 	}
 }
