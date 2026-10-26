@@ -6,38 +6,37 @@ import (
 	"yandex-go-musthave-metrics-tpl/internal/model"
 )
 
-func GetMetrics() map[string]model.GaugeT {
+func GetMetrics() []model.Metrics {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-
-	return map[string]model.GaugeT{
-		"Alloc":         model.GaugeT(memStats.Alloc),
-		"BuckHashSys":   model.GaugeT(memStats.BuckHashSys),
-		"Frees":         model.GaugeT(memStats.Frees),
-		"GCCPUFraction": model.GaugeT(memStats.GCCPUFraction),
-		"GCSys":         model.GaugeT(memStats.GCSys),
-		"HeapAlloc":     model.GaugeT(memStats.HeapAlloc),
-		"HeapIdle":      model.GaugeT(memStats.HeapIdle),
-		"HeapInuse":     model.GaugeT(memStats.HeapInuse),
-		"HeapObjects":   model.GaugeT(memStats.HeapObjects),
-		"HeapReleased":  model.GaugeT(memStats.HeapReleased),
-		"HeapSys":       model.GaugeT(memStats.HeapSys),
-		"LastGC":        model.GaugeT(memStats.LastGC),
-		"Lookups":       model.GaugeT(memStats.Lookups),
-		"MCacheInuse":   model.GaugeT(memStats.MCacheInuse),
-		"MCacheSys":     model.GaugeT(memStats.MCacheSys),
-		"MSpanInuse":    model.GaugeT(memStats.MSpanInuse),
-		"MSpanSys":      model.GaugeT(memStats.MSpanSys),
-		"Mallocs":       model.GaugeT(memStats.Mallocs),
-		"NextGC":        model.GaugeT(memStats.NextGC),
-		"NumForcedGC":   model.GaugeT(memStats.NumForcedGC),
-		"NumGC":         model.GaugeT(memStats.NumGC),
-		"OtherSys":      model.GaugeT(memStats.OtherSys),
-		"PauseTotalNs":  model.GaugeT(memStats.PauseTotalNs),
-		"StackInuse":    model.GaugeT(memStats.StackInuse),
-		"StackSys":      model.GaugeT(memStats.StackSys),
-		"Sys":           model.GaugeT(memStats.Sys),
-		"TotalAlloc":    model.GaugeT(memStats.TotalAlloc),
-		"RandomValue":   model.GaugeT(rand.Float64()),
+	return []model.Metrics{
+		{ID: "Alloc", MType: model.Gauge, Value: new(float64(memStats.Alloc))},
+		{ID: "BuckHashSys", MType: model.Gauge, Value: new(float64(memStats.BuckHashSys))},
+		{ID: "Frees", MType: model.Gauge, Value: new(float64(memStats.Frees))},
+		{ID: "GCCPUFraction", MType: model.Gauge, Value: new(memStats.GCCPUFraction)},
+		{ID: "GCSys", MType: model.Gauge, Value: new(float64(memStats.GCSys))},
+		{ID: "HeapAlloc", MType: model.Gauge, Value: new(float64(memStats.HeapAlloc))},
+		{ID: "HeapIdle", MType: model.Gauge, Value: new(float64(memStats.HeapIdle))},
+		{ID: "HeapInuse", MType: model.Gauge, Value: new(float64(memStats.HeapInuse))},
+		{ID: "HeapObjects", MType: model.Gauge, Value: new(float64(memStats.HeapObjects))},
+		{ID: "HeapReleased", MType: model.Gauge, Value: new(float64(memStats.HeapReleased))},
+		{ID: "HeapSys", MType: model.Gauge, Value: new(float64(memStats.HeapSys))},
+		{ID: "LastGC", MType: model.Gauge, Value: new(float64(memStats.LastGC))},
+		{ID: "Lookups", MType: model.Gauge, Value: new(float64(memStats.Lookups))},
+		{ID: "MCacheInuse", MType: model.Gauge, Value: new(float64(memStats.MCacheInuse))},
+		{ID: "MCacheSys", MType: model.Gauge, Value: new(float64(memStats.MCacheSys))},
+		{ID: "MSpanInuse", MType: model.Gauge, Value: new(float64(memStats.MSpanInuse))},
+		{ID: "MSpanSys", MType: model.Gauge, Value: new(float64(memStats.MSpanSys))},
+		{ID: "Mallocs", MType: model.Gauge, Value: new(float64(memStats.Mallocs))},
+		{ID: "NextGC", MType: model.Gauge, Value: new(float64(memStats.NextGC))},
+		{ID: "NumForcedGC", MType: model.Gauge, Value: new(float64(memStats.NumForcedGC))},
+		{ID: "NumGC", MType: model.Gauge, Value: new(float64(memStats.NumGC))},
+		{ID: "OtherSys", MType: model.Gauge, Value: new(float64(memStats.OtherSys))},
+		{ID: "PauseTotalNs", MType: model.Gauge, Value: new(float64(memStats.PauseTotalNs))},
+		{ID: "StackInuse", MType: model.Gauge, Value: new(float64(memStats.StackInuse))},
+		{ID: "StackSys", MType: model.Gauge, Value: new(float64(memStats.StackSys))},
+		{ID: "Sys", MType: model.Gauge, Value: new(float64(memStats.Sys))},
+		{ID: "TotalAlloc", MType: model.Gauge, Value: new(float64(memStats.TotalAlloc))},
+		{ID: "RandomValue", MType: model.Gauge, Value: new(rand.Float64())},
 	}
 }

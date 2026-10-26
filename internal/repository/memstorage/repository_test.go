@@ -39,17 +39,17 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestGetValue(t *testing.T) {
+func TestGet(t *testing.T) {
 	testVal := 1.1
 	tableTest := []struct {
-		name     string
-		setup    func(m *MemStorage)
-		metricID string
-		expected float64
-		err      error
+		name       string
+		setup      func(m *MemStorage)
+		metricName string
+		expected   model.Metrics
+		err        error
 	}{
 		{
-			"getValue",
+			"get",
 			func(m *MemStorage) {
 				m.data["Test"] = model.Metrics{
 					ID:    "Test",
@@ -60,14 +60,21 @@ func TestGetValue(t *testing.T) {
 				}
 			},
 			"Test",
-			1.1,
+
+			model.Metrics{
+				ID:    "Test",
+				MType: model.Gauge,
+				Delta: nil,
+				Value: &testVal,
+				Hash:  "",
+			},
 			nil,
 		},
 		{
 			"getValueError",
 			nil,
 			"Test",
-			0,
+			model.Metrics{},
 			errors.New("metric not found"),
 		},
 	}
@@ -77,12 +84,12 @@ func TestGetValue(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(storage)
 			}
-			val, err := storage.GetValue(t.Context(), tt.metricID)
+			metric, err := storage.Get(t.Context(), tt.metricName)
 			if err != nil {
 				assert.Equal(t, tt.err, err)
 				return
 			}
-			assert.Equal(t, tt.expected, *val)
+			assert.Equal(t, tt.expected, metric)
 		})
 	}
 }

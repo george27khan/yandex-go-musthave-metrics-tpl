@@ -11,7 +11,7 @@ var _ MetricRepository = (*storage.MemStorage)(nil)
 
 type MetricRepository interface {
 	Add(ctx context.Context, m model.Metrics) error
-	GetValue(ctx context.Context, name string) (*float64, error)
+	Get(ctx context.Context, name string) (model.Metrics, error)
 	GetAll(ctx context.Context) ([]model.Metrics, error)
 }
 
@@ -27,9 +27,9 @@ func NewMetricService(mr MetricRepository) *MetricService {
 
 func (s *MetricService) Add(ctx context.Context, m model.Metrics) error {
 	if m.MType == model.Counter {
-		oldMetricVal, err := s.repository.GetValue(ctx, m.ID)
+		oldMetric, err := s.repository.Get(ctx, m.ID)
 		if err == nil {
-			*m.Value += *oldMetricVal
+			*m.Delta += *oldMetric.Delta
 		}
 	}
 	if err := s.repository.Add(ctx, m); err != nil {
@@ -38,18 +38,18 @@ func (s *MetricService) Add(ctx context.Context, m model.Metrics) error {
 	return nil
 }
 
-func (s *MetricService) GetValue(ctx context.Context, name string) (*float64, error) {
-	metricValue, err := s.repository.GetValue(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	return metricValue, nil
-}
-
 func (s *MetricService) GetAll(ctx context.Context) ([]model.Metrics, error) {
 	metrics, err := s.repository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return metrics, nil
+}
+
+func (s *MetricService) GetMetric(ctx context.Context, metric model.Metrics) (model.Metrics, error) {
+	metric, err := s.repository.Get(ctx, metric.ID)
+	if err != nil {
+		return model.Metrics{}, err
+	}
+	return metric, nil
 }

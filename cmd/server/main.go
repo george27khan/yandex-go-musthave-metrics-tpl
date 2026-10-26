@@ -33,7 +33,10 @@ func main() {
 	router := r.With(middleware.WithLogger)
 	router.Post("/update/{type}/{name}/{value}", handler.Update)
 	router.Get("/value/{type}/{name}", handler.Get)
+	router.Post("/update/", handler.UpdateJSON)
+	router.Post("/value/", handler.GetJSON)
 	router.Get("/", handler.GetAll)
+
 	fmt.Println("Listening on", *addr)
 	if err := http.ListenAndServe(*addr, router); err != nil {
 		panic(err)
