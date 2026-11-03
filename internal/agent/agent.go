@@ -2,6 +2,7 @@ package agent
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -46,7 +47,6 @@ func Start() {
 	}
 
 	fmt.Println("Agent listening on", *serverHost)
-	client := http.Client{}
 	tPool := time.NewTicker((time.Duration)(*poolInterval) * time.Second)
 	tSend := time.NewTicker((time.Duration)(*reportInterval) * time.Second)
 
@@ -66,7 +66,7 @@ func Start() {
 				Hash:  "",
 			})
 			for _, value := range metrics {
-				sendJSON(client, *serverHost, value)
+				sendJSON(*serverHost, value)
 			}
 			poolCnt = 0
 		}
@@ -90,18 +90,36 @@ func send(c http.Client, serverHost string, m model.Metrics) {
 	}
 }
 
-func sendJSON(c http.Client, serverHost string, m model.Metrics) {
-	buffer := &bytes.Buffer{}
+func sendJSON(serverHost string, m model.Metrics) {
+	body := &bytes.Buffer{}
 	urlReq := &url.URL{Scheme: "http", Host: serverHost, Path: fmt.Sprintf("/update/")}
-	err := json.NewEncoder(buffer).Encode(m)
+	gw, err := gzip.NewWriterLevel(body, gzip.BestCompression)
+	if err != nil {
+		log.Printf("Could not create gzip writer, %v/n", err)
+		return
+	}
+
+	err = json.NewEncoder(gw).Encode(m)
+	if err != nil {
+		log.Printf("Could not encode json, %v/n", err)
+		_ = gw.Close()
+		return
+	}
+	if err = gw.Close(); err != nil {
+		log.Printf("Could not close gzip writer, %v/n", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", urlReq.String(), body)
+	if err != nil {
+		log.Printf("Could not create request, %v/n", err)
+	}
+	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Printf("Could not send request to server, %v/n", err)
 		return
 	}
-	resp, err := c.Post(urlReq.String(), "application/json", buffer)
-	if err != nil {
-		log.Printf("Could not send request to server, %v/n", err)
-	} else {
-		resp.Body.Close()
-	}
+	defer resp.Body.Close()
 }

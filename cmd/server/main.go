@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	h "yandex-go-musthave-metrics-tpl/internal/handler"
-	mw "yandex-go-musthave-metrics-tpl/internal/handler/middleware"
+	"yandex-go-musthave-metrics-tpl/internal/handler/middleware"
 	ms "yandex-go-musthave-metrics-tpl/internal/repository/memstorage"
 	s "yandex-go-musthave-metrics-tpl/internal/service/server"
 
@@ -28,9 +28,10 @@ func main() {
 	repository := ms.NewMemStorage()
 	service := s.NewMetricService(repository)
 	handler := h.NewMetricHandler(service)
-	middleware := mw.NewMiddleware(logger)
+	middlewareLogger := middleware.NewMiddleware(logger)
 	r := chi.NewRouter()
-	router := r.With(middleware.WithLogger)
+	router := r.With(middlewareLogger.WithLogger, middleware.WithCompression)
+
 	router.Post("/update/{type}/{name}/{value}", handler.Update)
 	router.Get("/value/{type}/{name}", handler.Get)
 	router.Post("/update/", handler.UpdateJSON)
