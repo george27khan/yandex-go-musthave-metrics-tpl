@@ -70,3 +70,10 @@ test-7: build
 		-source-path=. \
 		-agent-binary-path=bin/agent \
 		-server-port=8080
+
+test-8: build
+	$(METRICS_TEST) -test.v -test.run='^TestIteration8$$' \
+		-binary-path=bin/server \
+		-source-path=. \
+		-agent-binary-path=bin/agent \
+		-server-port=8080
