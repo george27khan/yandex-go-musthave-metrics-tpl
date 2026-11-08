@@ -37,7 +37,7 @@ func Run() {
 	handler := h.NewMetricHandler(service)
 	middlewareLogger := middleware.NewMiddleware(logger)
 	r := chi.NewRouter()
-	// добавление мидлвар
+	// добавление middleware
 	router := r.With(middlewareLogger.WithLogger, middleware.WithCompression)
 
 	router.Post("/update/{type}/{name}/{value}", handler.Update)

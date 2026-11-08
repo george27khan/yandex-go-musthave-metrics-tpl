@@ -92,7 +92,7 @@ func send(c http.Client, serverHost string, m model.Metrics) {
 
 func sendJSON(serverHost string, m model.Metrics) {
 	body := &bytes.Buffer{}
-	urlReq := &url.URL{Scheme: "http", Host: serverHost, Path: fmt.Sprintf("/update/")}
+	urlReq := &url.URL{Scheme: "http", Host: serverHost, Path: "/update/"}
 	gw, err := gzip.NewWriterLevel(body, gzip.BestCompression)
 	if err != nil {
 		log.Printf("Could not create gzip writer, %v/n", err)
