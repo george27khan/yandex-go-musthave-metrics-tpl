@@ -11,6 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:1.26.5
     steps:
+      - name: Run statictest
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          echo "=== Go version ==="
+          go version
+          go env GOVERSION GOTOOLCHAIN
+
+          echo "=== statictest ==="
+          file /usr/local/bin/statictest
+
+          echo "=== Run vet ==="
+          go vet -vettool=/usr/local/bin/statictest ./...
       - name: Checkout code
         uses: actions/checkout@v2
 
