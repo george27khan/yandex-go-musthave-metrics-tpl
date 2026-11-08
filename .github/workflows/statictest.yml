@@ -36,7 +36,9 @@ jobs:
         run: |
           echo "=== Go version ==="
           go version
-          go env GOVERSION GOTOOLCHAIN
+
+          echo "=== Go environment ==="
+          go env GOVERSION GOTOOLCHAIN GOROOT
 
           echo "=== statictest ==="
           file /usr/local/bin/statictest
