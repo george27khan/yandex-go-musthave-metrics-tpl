@@ -15,13 +15,21 @@ type MetricRepository interface {
 	GetAll(ctx context.Context) ([]model.Metrics, error)
 }
 
-type MetricService struct {
-	repository MetricRepository
+type MetricFile interface {
+	Save(ctx context.Context) error
 }
 
-func NewMetricService(mr MetricRepository) *MetricService {
+type MetricService struct {
+	repository  MetricRepository
+	fileStorage MetricFile
+	sync        bool
+}
+
+func NewMetricService(mr MetricRepository, mf MetricFile, sync bool) *MetricService {
 	return &MetricService{
-		repository: mr,
+		repository:  mr,
+		fileStorage: mf,
+		sync:        sync,
 	}
 }
 
@@ -34,6 +42,9 @@ func (s *MetricService) Add(ctx context.Context, m model.Metrics) error {
 	}
 	if err := s.repository.Add(ctx, m); err != nil {
 		return err
+	}
+	if s.sync {
+		return s.fileStorage.Save(ctx)
 	}
 	return nil
 }
