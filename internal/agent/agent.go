@@ -16,7 +16,7 @@ import (
 	"yandex-go-musthave-metrics-tpl/internal/service/agent"
 )
 
-func Start() {
+func Run() {
 	var (
 		metrics []model.Metrics
 		poolCnt int64 = 0

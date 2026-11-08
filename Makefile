@@ -77,3 +77,11 @@ test-8: build
 		-source-path=. \
 		-agent-binary-path=bin/agent \
 		-server-port=8080
+
+test-9: build
+	$(METRICS_TEST) -test.v -test.run='^TestIteration9$$' \
+		-binary-path=bin/server \
+		-source-path=. \
+		-agent-binary-path=bin/agent \
+		-server-port=8080 \
+		-file-storage-path=./metrics-db.json
