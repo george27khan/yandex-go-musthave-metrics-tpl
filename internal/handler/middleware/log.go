@@ -52,7 +52,7 @@ func (m *Logger) WithLogger(h http.Handler) http.Handler {
 	})
 }
 
-// Структура для подмены writer для логгирования
+// WriterWithLog структура для подмены writer для логирования
 type WriterWithLog struct {
 	w       http.ResponseWriter
 	logInfo *ResponseInfo

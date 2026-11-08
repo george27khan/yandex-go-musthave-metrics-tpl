@@ -50,7 +50,7 @@ func (fs *FileStorage) Run(ctx context.Context) error {
 func (fs *FileStorage) Save(ctx context.Context) error {
 	metrics, err := fs.rep.GetAll(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to get metrics: %w", err)
+		return fmt.Errorf("failed to get metrics: %w", err)
 	}
 	data, err := json.Marshal(metrics)
 	if err != nil {

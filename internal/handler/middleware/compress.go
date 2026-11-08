@@ -11,8 +11,8 @@ import (
 type GzipWriter struct {
 	w              http.ResponseWriter
 	zw             *gzip.Writer
-	compressed     bool // флаг активации сжатия
-	firstWriteDone bool // флаг первой записи тела ответа для установки заголовка
+	compressed     bool // Флаг активации сжатия
+	firstWriteDone bool // Флаг первой записи тела ответа для установки заголовка
 }
 
 func NewGzipWriter(w http.ResponseWriter) *GzipWriter {
@@ -22,7 +22,7 @@ func NewGzipWriter(w http.ResponseWriter) *GzipWriter {
 	}
 }
 
-// Write переопредеение метода для запуска сжатия записываемых данных
+// Write переопределение метода для запуска сжатия записываемых данных
 func (gw *GzipWriter) Write(p []byte) (int, error) {
 	for _, value := range gw.w.Header()["Content-Type"] {
 		if value == "application/json" || value == "text/html" {
@@ -49,8 +49,8 @@ func (gw *GzipWriter) WriteHeader(statusCode int) {
 }
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
-func (c *GzipWriter) Close() error {
-	return c.zw.Close()
+func (gw *GzipWriter) Close() error {
+	return gw.zw.Close()
 }
 
 // GzipReader структура переопределения Request для распаковки тела от сжатия
@@ -78,12 +78,12 @@ func (cr *GzipReader) Close() error {
 	return cr.zr.Close()
 }
 
-// WithCompression мидлварь для добавление сжатия и распаковки тела
+// WithCompression middleware для добавления сжатия и распаковки тела
 func WithCompression(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//если указан алгоритм сжатия ответа, то делаем сжатие тела
-		rensponseEncoding := r.Header.Get("Accept-Encoding")
-		if strings.Contains(rensponseEncoding, "gzip") {
+		responseEncoding := r.Header.Get("Accept-Encoding")
+		if strings.Contains(responseEncoding, "gzip") {
 			cw := NewGzipWriter(w)
 			// меняем тело запроса на новое
 			w = cw
