@@ -1,4 +1,3 @@
-
 name: go vet test
 
 on:
@@ -10,8 +9,7 @@ on:
 jobs:
   statictest:
     runs-on: ubuntu-latest
-    container: golang:1.26.5
-
+    container: golang:1.26
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -20,26 +18,16 @@ jobs:
         uses: robinraju/release-downloader@v1.8
         with:
           repository: Yandex-Practicum/go-autotests
-          tag: v0.13.8
+          latest: true
           fileName: statictest
           out-file-path: .tools
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup autotest binary
         run: |
-          chmod +x .tools/statictest
-          mv .tools/statictest /usr/local/bin/statictest
+          chmod -R +x $GITHUB_WORKSPACE/.tools/statictest
+          mv $GITHUB_WORKSPACE/.tools/statictest /usr/local/bin/statictest
 
       - name: Run statictest
-        env:
-          GOTOOLCHAIN: local
         run: |
-          echo "=== Go version ==="
-          go version
-          go env GOVERSION GOTOOLCHAIN GOROOT
-
-          echo "=== statictest ==="
-          ls -lh /usr/local/bin/statictest
-
-          echo "=== Run vet ==="
-          go vet -vettool=/usr/local/bin/statictest ./...
+          go vet -vettool=$(which statictest) ./...

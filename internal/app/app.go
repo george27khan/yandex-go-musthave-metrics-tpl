@@ -10,6 +10,7 @@ import (
 	"yandex-go-musthave-metrics-tpl/internal/handler/middleware"
 	"yandex-go-musthave-metrics-tpl/internal/repository/filestorage"
 	"yandex-go-musthave-metrics-tpl/internal/repository/memstorage"
+	"yandex-go-musthave-metrics-tpl/internal/repository/postgres"
 	s "yandex-go-musthave-metrics-tpl/internal/service/server"
 
 	"github.com/go-chi/chi/v5"
@@ -27,14 +28,27 @@ func Run() {
 		os.Exit(1)
 	}
 
-	repository := memstorage.NewMemStorage()
+	var repository s.MetricRepository
+	var db *postgres.DBStorage
+
+	if cfg.DSN != "" {
+		db, err = postgres.New(cfg.DSN)
+		if err != nil {
+			return
+		}
+		defer db.Close()
+		repository = db
+	} else {
+		repository = memstorage.NewMemStorage()
+	}
+
 	fs, err := filestorage.NewFileStorage(repository, cfg.FileStoragePath, cfg.StoreInterval)
 	if err != nil {
 		logger.Error("Error creating file storage", "error", err.Error())
 		os.Exit(1)
 	}
 	service := s.NewMetricService(repository, fs, cfg.StoreInterval == 0)
-	handler := h.NewMetricHandler(service)
+	handler := h.NewMetricHandler(service, logger)
 	middlewareLogger := middleware.NewMiddleware(logger)
 	r := chi.NewRouter()
 	// добавление middleware
@@ -45,6 +59,7 @@ func Run() {
 	router.Post("/update/", handler.UpdateJSON)
 	router.Post("/value/", handler.GetJSON)
 	router.Get("/", handler.GetAll)
+	router.Get("/ping", handler.GetAll)
 
 	// загрузка данных с файла в репозиторий
 	if cfg.Restore {
@@ -64,6 +79,6 @@ func Run() {
 
 	logger.Info("Listening on", slog.String("address", cfg.Host))
 	if err := http.ListenAndServe(cfg.Host, router); err != nil {
-		panic(err)
+		logger.Error("server error", "error", err.Error())
 	}
 }

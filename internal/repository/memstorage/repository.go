@@ -46,3 +46,7 @@ func (s *MemStorage) Get(ctx context.Context, name string) (model.Metrics, error
 	}
 	return metric, nil
 }
+
+func (s *MemStorage) Ping(ctx context.Context) error {
+	return nil
+}
