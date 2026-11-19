@@ -48,7 +48,7 @@ func (s *DBStorage) Add(ctx context.Context, m model.Metrics) error {
 		return err
 	}
 	if cnt == 0 {
-		res, err = s.db.ExecContext(
+		_, err = s.db.ExecContext(
 			ctx,
 			`insert into metrics(name,type,delta, value,hash)
 				   values ($1,$2,$3,$4,$5)`,
@@ -76,6 +76,9 @@ func (s *DBStorage) GetAll(ctx context.Context) ([]model.Metrics, error) {
 		}
 		metrics = append(metrics, m)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 	return metrics, nil
 }
 
@@ -98,4 +101,8 @@ func initDB(db *sql.DB) error {
         value double precision,
         hash varchar)`)
 	return err
+}
+
+func (s *DBStorage) Close() error {
+	return s.db.Close()
 }

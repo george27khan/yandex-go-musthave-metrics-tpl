@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -30,13 +29,15 @@ func Run() {
 	}
 
 	var repository s.MetricRepository
-	fmt.Println("cfg.DSN", cfg.DSN)
+	var db *postgres.DBStorage
+
 	if cfg.DSN != "" {
-		repository, err = postgres.New(cfg.DSN)
+		db, err = postgres.New(cfg.DSN)
 		if err != nil {
-			logger.Error("Error creating repository", "error", err.Error())
 			return
 		}
+		defer db.Close()
+		repository = db
 	} else {
 		repository = memstorage.NewMemStorage()
 	}
@@ -78,6 +79,6 @@ func Run() {
 
 	logger.Info("Listening on", slog.String("address", cfg.Host))
 	if err := http.ListenAndServe(cfg.Host, router); err != nil {
-		panic(err)
+		logger.Error("server error", "error", err.Error())
 	}
 }
