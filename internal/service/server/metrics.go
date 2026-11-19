@@ -3,16 +3,19 @@ package server
 import (
 	"context"
 	"yandex-go-musthave-metrics-tpl/internal/model"
-	storage "yandex-go-musthave-metrics-tpl/internal/repository/memstorage"
+	storage "yandex-go-musthave-metrics-tpl/internal/repository/postgres"
 )
 
+// var _ MetricRepository = (*storage.MemStorage)(nil)
+//
 //go:generate mockgen -package server -source=metrics.go -destination=mock_metrics_test.go
-var _ MetricRepository = (*storage.MemStorage)(nil)
+var _ MetricRepository = (*storage.DBStorage)(nil)
 
 type MetricRepository interface {
 	Add(ctx context.Context, m model.Metrics) error
 	Get(ctx context.Context, name string) (model.Metrics, error)
 	GetAll(ctx context.Context) ([]model.Metrics, error)
+	Ping(ctx context.Context) error
 }
 
 type MetricFile interface {
@@ -63,4 +66,8 @@ func (s *MetricService) GetMetric(ctx context.Context, metric model.Metrics) (mo
 		return model.Metrics{}, err
 	}
 	return metric, nil
+}
+
+func (s *MetricService) PingRepository(ctx context.Context) error {
+	return s.repository.Ping(ctx)
 }

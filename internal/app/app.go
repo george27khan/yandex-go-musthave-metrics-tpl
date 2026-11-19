@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"yandex-go-musthave-metrics-tpl/internal/handler/middleware"
 	"yandex-go-musthave-metrics-tpl/internal/repository/filestorage"
 	"yandex-go-musthave-metrics-tpl/internal/repository/memstorage"
+	"yandex-go-musthave-metrics-tpl/internal/repository/postgres"
 	s "yandex-go-musthave-metrics-tpl/internal/service/server"
 
 	"github.com/go-chi/chi/v5"
@@ -27,14 +29,25 @@ func Run() {
 		os.Exit(1)
 	}
 
-	repository := memstorage.NewMemStorage()
+	var repository s.MetricRepository
+	fmt.Println("cfg.DSN", cfg.DSN)
+	if cfg.DSN != "" {
+		repository, err = postgres.New(cfg.DSN)
+		if err != nil {
+			logger.Error("Error creating repository", "error", err.Error())
+			return
+		}
+	} else {
+		repository = memstorage.NewMemStorage()
+	}
+
 	fs, err := filestorage.NewFileStorage(repository, cfg.FileStoragePath, cfg.StoreInterval)
 	if err != nil {
 		logger.Error("Error creating file storage", "error", err.Error())
 		os.Exit(1)
 	}
 	service := s.NewMetricService(repository, fs, cfg.StoreInterval == 0)
-	handler := h.NewMetricHandler(service)
+	handler := h.NewMetricHandler(service, logger)
 	middlewareLogger := middleware.NewMiddleware(logger)
 	r := chi.NewRouter()
 	// добавление middleware
@@ -45,6 +58,7 @@ func Run() {
 	router.Post("/update/", handler.UpdateJSON)
 	router.Post("/value/", handler.GetJSON)
 	router.Get("/", handler.GetAll)
+	router.Get("/ping", handler.GetAll)
 
 	// загрузка данных с файла в репозиторий
 	if cfg.Restore {
