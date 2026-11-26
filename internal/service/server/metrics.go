@@ -52,6 +52,15 @@ func (s *MetricService) Add(ctx context.Context, m model.Metrics) error {
 	return nil
 }
 
+func (s *MetricService) AddList(ctx context.Context, mList []model.Metrics) error {
+	for _, m := range mList {
+		if err := s.Add(ctx, m); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *MetricService) GetAll(ctx context.Context) ([]model.Metrics, error) {
 	metrics, err := s.repository.GetAll(ctx)
 	if err != nil {

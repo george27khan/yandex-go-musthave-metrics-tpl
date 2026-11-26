@@ -102,3 +102,12 @@ test-11: build
 		-server-port=8080 \
 		-database-dsn=postgres://postgres:postgres@127.0.0.1:5432/metrics?sslmode=disable\
 		-file-storage-path=./metrics-db.json
+
+test-12: build
+	$(METRICS_TEST) -test.v -test.run='^TestIteration12$$' \
+		-binary-path=bin/server \
+		-source-path=. \
+		-agent-binary-path=bin/agent \
+		-server-port=8080 \
+		-database-dsn=postgres://postgres:postgres@127.0.0.1:5432/metrics?sslmode=disable\
+		-file-storage-path=./metrics-db.json
