@@ -23,6 +23,10 @@ func (s *MemStorage) Add(ctx context.Context, m model.Metrics) error {
 	return nil
 }
 
+func (s *MemStorage) AddList(ctx context.Context, m []model.Metrics) error {
+	return nil
+}
+
 func (s *MemStorage) GetAll(ctx context.Context) ([]model.Metrics, error) {
 	if len(s.data) == 0 {
 		return []model.Metrics{}, errors.New("no metrics found")

@@ -57,6 +57,7 @@ func Run() {
 	router.Post("/update/{type}/{name}/{value}", handler.Update)
 	router.Get("/value/{type}/{name}", handler.Get)
 	router.Post("/update/", handler.UpdateJSON)
+	router.Post("/updates/", handler.UpdatesJSON)
 	router.Post("/value/", handler.GetJSON)
 	router.Get("/", handler.GetAll)
 	router.Get("/ping", handler.GetAll)

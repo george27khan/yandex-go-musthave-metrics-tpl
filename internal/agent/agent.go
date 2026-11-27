@@ -65,15 +65,17 @@ func Run() {
 				Value: nil,
 				Hash:  "",
 			})
-			for _, value := range metrics {
-				sendJSON(*serverHost, value)
-			}
+			//for _, value := range metrics {
+			//	sendJSON(*serverHost, value)
+			//}
+			sendArrayJSON(*serverHost, metrics)
 			poolCnt = 0
 		}
 
 	}
 }
 
+// send первая реализация отправки метрик в url
 func send(c http.Client, serverHost string, m model.Metrics) {
 	urlReq := &url.URL{}
 	if m.MType == model.Counter {
@@ -90,9 +92,47 @@ func send(c http.Client, serverHost string, m model.Metrics) {
 	}
 }
 
+// sendJSON вторая реализация отправки метрик в теле в виде json
 func sendJSON(serverHost string, m model.Metrics) {
 	body := &bytes.Buffer{}
 	urlReq := &url.URL{Scheme: "http", Host: serverHost, Path: "/update/"}
+	gw, err := gzip.NewWriterLevel(body, gzip.BestCompression)
+	if err != nil {
+		log.Printf("Could not create gzip writer, %v/n", err)
+		return
+	}
+
+	err = json.NewEncoder(gw).Encode(m)
+	if err != nil {
+		log.Printf("Could not encode json, %v/n", err)
+		_ = gw.Close()
+		return
+	}
+	if err = gw.Close(); err != nil {
+		log.Printf("Could not close gzip writer, %v/n", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", urlReq.String(), body)
+	if err != nil {
+		log.Printf("Could not create request, %v/n", err)
+	}
+	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("Could not send request to server, %v/n", err)
+		return
+	}
+	defer resp.Body.Close()
+}
+
+// sendArrayJSON третья реализация отправки метрик в теле в виде json массива
+func sendArrayJSON(serverHost string, m []model.Metrics) {
+	body := &bytes.Buffer{}
+	fmt.Println("Sending metrics to ", m)
+
+	urlReq := &url.URL{Scheme: "http", Host: serverHost, Path: "/updates/"}
 	gw, err := gzip.NewWriterLevel(body, gzip.BestCompression)
 	if err != nil {
 		log.Printf("Could not create gzip writer, %v/n", err)

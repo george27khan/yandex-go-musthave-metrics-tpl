@@ -13,6 +13,7 @@ var _ MetricRepository = (*storage.DBStorage)(nil)
 
 type MetricRepository interface {
 	Add(ctx context.Context, m model.Metrics) error
+	AddList(ctx context.Context, m []model.Metrics) error
 	Get(ctx context.Context, name string) (model.Metrics, error)
 	GetAll(ctx context.Context) ([]model.Metrics, error)
 	Ping(ctx context.Context) error
@@ -25,14 +26,14 @@ type MetricFile interface {
 type MetricService struct {
 	repository  MetricRepository
 	fileStorage MetricFile
-	sync        bool
+	snc         bool
 }
 
-func NewMetricService(mr MetricRepository, mf MetricFile, sync bool) *MetricService {
+func NewMetricService(mr MetricRepository, mf MetricFile, snc bool) *MetricService {
 	return &MetricService{
 		repository:  mr,
 		fileStorage: mf,
-		sync:        sync,
+		snc:         snc,
 	}
 }
 
@@ -46,8 +47,15 @@ func (s *MetricService) Add(ctx context.Context, m model.Metrics) error {
 	if err := s.repository.Add(ctx, m); err != nil {
 		return err
 	}
-	if s.sync {
+	if s.snc {
 		return s.fileStorage.Save(ctx)
+	}
+	return nil
+}
+
+func (s *MetricService) AddList(ctx context.Context, metrics []model.Metrics) error {
+	if err := s.repository.AddList(ctx, metrics); err != nil {
+		return err
 	}
 	return nil
 }

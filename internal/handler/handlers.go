@@ -14,6 +14,7 @@ var _ MetricService = (*server.MetricService)(nil)
 
 type MetricService interface {
 	Add(ctx context.Context, m model.Metrics) error
+	AddList(ctx context.Context, mList []model.Metrics) error
 	GetAll(ctx context.Context) ([]model.Metrics, error)
 	GetMetric(ctx context.Context, metric model.Metrics) (model.Metrics, error)
 	PingRepository(ctx context.Context) error
@@ -164,7 +165,7 @@ func (h *MetricHandler) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&metric)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		h.logger.Error("son.NewDecoder(r.Body).Decode(&metric)", "error", err.Error())
+		h.logger.Error("json.NewDecoder(r.Body).Decode(&metric)", "error", err.Error())
 
 		return
 	}
@@ -172,6 +173,25 @@ func (h *MetricHandler) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		h.logger.Error("h.MetricService.Add", "error", err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *MetricHandler) UpdatesJSON(w http.ResponseWriter, r *http.Request) {
+	var metrics []model.Metrics
+	err := json.NewDecoder(r.Body).Decode(&metrics)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.logger.Error("json.NewDecoder(r.Body).Decode(&metrics)", "error", err.Error())
+
+		return
+	}
+	err = h.MetricService.AddList(r.Context(), metrics)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.logger.Error("h.MetricService.AddList", "error", err.Error())
+
 		return
 	}
 	w.WriteHeader(http.StatusOK)
