@@ -97,7 +97,7 @@ func initDB(db *sql.DB) error {
 	_, err := db.Exec(`create table if not exists metrics (
     	name varchar PRIMARY KEY,
     	type varchar,
-    	delta int,
+    	delta int8,
         value double precision,
         hash varchar)`)
 	return err
