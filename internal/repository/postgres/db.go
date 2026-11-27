@@ -60,6 +60,62 @@ func (s *DBStorage) Add(ctx context.Context, m model.Metrics) error {
 	return nil
 }
 
+func (s *DBStorage) AddList(ctx context.Context, metrics []model.Metrics) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	upd, err := tx.Prepare(`update metrics 
+				  set delta = delta + $1,
+					  value = $2
+			    where name = $3`)
+	if err != nil {
+		return err
+	}
+	defer upd.Close()
+	ins, err := tx.Prepare(`insert into metrics(name,type,delta, value,hash)
+				   values ($1,$2,$3,$4,$5)`)
+	if err != nil {
+		return err
+	}
+	defer ins.Close()
+	for _, m := range metrics {
+		res, err := upd.ExecContext(
+			ctx,
+			m.Delta, m.Value, m.ID)
+		if err != nil {
+			return err
+		}
+
+		cnt, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if cnt == 0 {
+			_, err = ins.ExecContext(
+				ctx,
+				m.ID, m.MType, m.Delta, m.Value, m.Hash)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (s *DBStorage) Get(ctx context.Context, name string) (model.Metrics, error) {
+	row := s.db.QueryRowContext(ctx,
+		`select t.name, t.type, t.delta, t.value, t.hash 
+				from metrics t where t.name = $1`, name)
+	var m model.Metrics
+	if err := row.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
+		return model.Metrics{}, err
+	}
+	return m, nil
+}
+
 func (s *DBStorage) GetAll(ctx context.Context) ([]model.Metrics, error) {
 	var metrics []model.Metrics
 	rows, err := s.db.QueryContext(ctx,
@@ -80,17 +136,6 @@ func (s *DBStorage) GetAll(ctx context.Context) ([]model.Metrics, error) {
 		return nil, err
 	}
 	return metrics, nil
-}
-
-func (s *DBStorage) Get(ctx context.Context, name string) (model.Metrics, error) {
-	row := s.db.QueryRowContext(ctx,
-		`select t.name, t.type, t.delta, t.value, t.hash 
-				from metrics t where t.name = $1`, name)
-	var m model.Metrics
-	if err := row.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash); err != nil {
-		return model.Metrics{}, err
-	}
-	return m, nil
 }
 
 func initDB(db *sql.DB) error {
