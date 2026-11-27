@@ -22,7 +22,7 @@ func LoadConfig() (*Config, error) {
 	storeInterval := flag.Duration("i", 15, "Interval to store metrics")
 	fileStoragePath := flag.String("f", "/tmp/metrics-db.json", "Path to file storage path")
 	restore := flag.Bool("r", true, "Restore metrics from a file")
-	DSN := flag.String("d", "postgres://postgres:postgres@127.0.0.1:5432/metrics?sslmode=disable", "Dns name to use") //postgres://postgres:postgres@127.0.0.1:5432/metrics?sslmode=disable
+	DSN := flag.String("d", "", "Dns name to use") //postgres://postgres:postgres@127.0.0.1:5432/metrics?sslmode=disable
 	flag.Parse()
 
 	if val, ok := os.LookupEnv("ADDRESS"); ok {
